@@ -29,6 +29,13 @@ jobs:
           npm run build
         # -> outputs into build/ per your vite.config.js
 
+      - name: Test connectivity
+        run: |
+          echo "Pinging ${{ secrets.SERVER_IP }}…"
+          ping -c 3 "${{ secrets.SERVER_IP }}" || true
+          echo "Testing port 22…"
+          nc -vz "${{ secrets.SERVER_IP }}" 22 || true
+
       - name: Start SSH Agent
         uses: webfactory/ssh-agent@v0.5.3
         with:

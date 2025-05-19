@@ -30,7 +30,7 @@ jobs:
         # -> outputs into build/ per your vite.config.js
 
       - name: Show build files
-        run: la -A /dist
+        run: la -A dist
 
       - name: Test connectivity
         run: |

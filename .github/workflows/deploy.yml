@@ -47,12 +47,12 @@ jobs:
           ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts 2>/dev/null || true
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Ensure target dir exists
-        run: |
-          ssh ubuntu@${{ secrets.SERVER_IP }} \
-            "mkdir -p /home/ubuntu/web/frontend
+      # - name: Ensure target dir exists
+      #   run: |
+      #     ssh ubuntu@${{ secrets.SERVER_IP }} \
+      #       "mkdir -p /home/ubuntu/web/frontend
 
       - name: Copy built files to server
         run: |
-          scp -r build/* \
+          scp -r dist/* \
             ubuntu@${{ secrets.SERVER_IP }}:/home/ubuntu/web/frontend

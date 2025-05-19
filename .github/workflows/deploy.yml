@@ -54,5 +54,5 @@ jobs:
 
       - name: Copy built files to server
         run: |
-          scp -r dist/* \
+          scp -r build/* \
             ubuntu@${{ secrets.SERVER_IP }}:/home/ubuntu/web/frontend

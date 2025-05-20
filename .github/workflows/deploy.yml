@@ -17,17 +17,10 @@ jobs:
         with:
           node-version: '18'
 
-      # - name: Debug workspace
-      #   run: |
-      #     echo "WORKSPACE: $GITHUB_WORKSPACE"
-      #     pwd
-      #     ls -R .
-
       - name: Install dependencies & build
         run: |
-          npm i
-          npm run build
-        # -> outputs into build/ per your vite.config.js
+          npm ci           # clean install
+          npm run build    # outputs into build/
 
       - name: Test connectivity
         run: |
@@ -44,15 +37,32 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      # - name: Ensure target dir exists
-      #   run: |
-      #     ssh ubuntu@${{ secrets.SERVER_IP }} \
-      #       "mkdir -p /home/ubuntu/web/frontend
+      - name: Rotate old folders on server
+        run: |
+          ssh ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
+            # 1) Remove the previous backup, if it exists
+            if [ -d /home/ubuntu/web/frontend-old ]; then
+              rm -rf /home/ubuntu/web/frontend-old
+            fi
+
+            # 2) Rename current live to backup
+            if [ -d /home/ubuntu/web/frontend ]; then
+              mv /home/ubuntu/web/frontend /home/ubuntu/web/frontend-old
+            fi
+
+            # 3) Re-create an empty live folder
+            mkdir -p /home/ubuntu/web/frontend
+
+            # 4) Ensure correct permissions so nginx (www-data) can read
+            sudo chown -R www-data:www-data /home/ubuntu/web/
+            sudo chmod -R 755 /home/ubuntu/web/frontend
+          EOF
 
       - name: Copy built files to server
         run: |
           scp -r build/* \
             ubuntu@${{ secrets.SERVER_IP }}:/home/ubuntu/web/frontend
+

@@ -57,6 +57,7 @@ jobs:
 
             echo "Creating new frontend directory..."
             sudo mkdir frontend
+            sudo chown ubuntu:ubuntu frontend
           EOF
 
       - name: Copy built files to server

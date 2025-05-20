@@ -48,11 +48,11 @@ jobs:
             cd /home/ubuntu/web
 
             echo "Cleaning up previous backup if exists..."
-            rm -rf frontend-old
+            sudo rm -rf frontend-old
 
             if [ -d "frontend" ]; then
               echo "Renaming current frontend to frontend-old..."
-              mv frontend frontend-old
+              sudo mv frontend frontend-old
             fi
 
             echo "Creating new frontend directory..."

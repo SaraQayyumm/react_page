@@ -22,13 +22,6 @@ jobs:
           npm i
           npm run build
 
-      - name: Test connectivity
-        run: |
-          echo "Pinging ${{ secrets.SERVER_IP }}…"
-          ping -c 3 "${{ secrets.SERVER_IP }}" || true
-          echo "Testing port 22…"
-          nc -vz "${{ secrets.SERVER_IP }}" 22 || true
-
       - name: Start SSH Agent
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -37,19 +30,24 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts 2>/dev/null || true
-          chmod 600 ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts
 
-      - name: Prepare server folder structure
+      - name: Prepare frontend directory on server
         run: |
           ssh ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
-            set -e
             cd /home/ubuntu/web
-            rm -rf frontend-old || true
+            if [ -d "frontend-old" ]; then
+              echo "Deleting old backup..."
+              rm -rf frontend-old
+            fi
+
             if [ -d "frontend" ]; then
+              echo "Renaming frontend -> frontend-old..."
               mv frontend frontend-old
             fi
-            mkdir -p frontend
+
+            mkdir frontend
+            chmod -R 775 frontend
           EOF
 
       - name: Copy built files to server

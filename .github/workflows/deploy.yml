@@ -40,29 +40,29 @@ jobs:
           ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Rotate old folders on server
+      - name: Rotate and prepare folders on server
         run: |
           ssh ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
-            # 1) Remove the previous backup, if it exists
+            set -e
+
+            # 1) Remove old backup if it exists
             if [ -d /home/ubuntu/web/frontend-old ]; then
               rm -rf /home/ubuntu/web/frontend-old
             fi
 
-            # 2) Rename current live to backup
+            # 2) Rename current live folder to backup
             if [ -d /home/ubuntu/web/frontend ]; then
               mv /home/ubuntu/web/frontend /home/ubuntu/web/frontend-old
             fi
 
-            # 3) Re-create an empty live folder
+            # 3) Create new frontend folder
             mkdir -p /home/ubuntu/web/frontend
 
-            # 4) Ensure correct permissions so nginx (www-data) can read
-            sudo chown -R www-data:www-data /home/ubuntu/web/
-            sudo chmod -R 755 /home/ubuntu/web/frontend
+            # 4) Fix permissions for ubuntu and nginx (www-data)
+            sudo chown -R ubuntu:www-data /home/ubuntu/web
+            sudo chmod -R 775 /home/ubuntu/web
           EOF
 
       - name: Copy built files to server
         run: |
-          scp -r build/* \
-            ubuntu@${{ secrets.SERVER_IP }}:/home/ubuntu/web/frontend
-
+          scp -r build/* ubuntu@${{ secrets.SERVER_IP }}:/home/ubuntu/web/frontend

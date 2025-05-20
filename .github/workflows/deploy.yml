@@ -21,6 +21,7 @@ jobs:
         run: |
           npm i
           npm run build
+        # Output goes to build/ as per vite.config.js
 
       - name: Test connectivity
         run: |
@@ -40,19 +41,22 @@ jobs:
           ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts 2>/dev/null || true
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Backup existing frontend on server
+      - name: Prepare server deployment directory
         run: |
           ssh ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
+            set -e
             cd /home/ubuntu/web
-            if [ -d frontend-old ]; then
-              echo "Removing existing frontend-old..."
-              rm -rf frontend-old
-            fi
-            if [ -d frontend ]; then
-              echo "Backing up current frontend to frontend-old..."
+
+            echo "Cleaning up previous backup if exists..."
+            rm -rf frontend-old
+
+            if [ -d "frontend" ]; then
+              echo "Renaming current frontend to frontend-old..."
               mv frontend frontend-old
             fi
-            mkdir -p frontend
+
+            echo "Creating new frontend directory..."
+            mkdir frontend
           EOF
 
       - name: Copy built files to server

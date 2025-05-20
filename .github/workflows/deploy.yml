@@ -19,8 +19,8 @@ jobs:
 
       - name: Install dependencies & build
         run: |
-          npm ci           # clean install
-          npm run build    # outputs into build/
+          npm i
+          npm run build
 
       - name: Test connectivity
         run: |
@@ -37,30 +37,19 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts 2>/dev/null || true
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Rotate and prepare folders on server
+      - name: Prepare server folder structure
         run: |
           ssh ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
-
-            # 1) Remove old backup if it exists
-            if [ -d /home/ubuntu/web/frontend-old ]; then
-              rm -rf /home/ubuntu/web/frontend-old
+            cd /home/ubuntu/web
+            rm -rf frontend-old || true
+            if [ -d "frontend" ]; then
+              mv frontend frontend-old
             fi
-
-            # 2) Rename current live folder to backup
-            if [ -d /home/ubuntu/web/frontend ]; then
-              mv /home/ubuntu/web/frontend /home/ubuntu/web/frontend-old
-            fi
-
-            # 3) Create new frontend folder
-            mkdir -p /home/ubuntu/web/frontend
-
-            # 4) Fix permissions for ubuntu and nginx (www-data)
-            sudo chown -R ubuntu:www-data /home/ubuntu/web
-            sudo chmod -R 775 /home/ubuntu/web
+            mkdir -p frontend
           EOF
 
       - name: Copy built files to server

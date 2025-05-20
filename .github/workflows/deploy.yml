@@ -56,7 +56,7 @@ jobs:
             fi
 
             echo "Creating new frontend directory..."
-            mkdir frontend
+            sudo mkdir frontend
           EOF
 
       - name: Copy built files to server
